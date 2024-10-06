@@ -2,7 +2,7 @@ const express = require ("express");
 const { Adminauth, UserAuth } = require("./middlewares/auth");
 const app = express();
 
-app.use("/admin",Adminauth);//this means as we studied earlier the route starts with /admin
+app.use("/admin",Adminauth);//this means as we studied earlier the route starts with /admin will work for all the routes starts with /admin ,similarly here we are also attaching Admin auth middleware to it so it
 //has to first check with admin auth middleware for every /admin routes . If it is verifies then it will be run.
 //this is one way of using middleware.
 //As we dont have to check authentication for all the routes starts with /user so we can use /userAuth middleware where it is needed
