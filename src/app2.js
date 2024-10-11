@@ -1,7 +1,10 @@
 const express = require('express');
 const ConncetDb = require('./config/database');
 const User = require('./models/user');
+const {ValidateSignUpData} = require('./utils/validate')
 const app = express();
+const bcrypt = require('bcrypt');
+const { isValidObjectId } = require('mongoose');
 app.use(express.json())//so after using this middleware now we are getting the all the data in the console
 //so simply replace it with static data in the code
 app.post("/signUp",async (req,res)=>{
@@ -11,14 +14,29 @@ app.post("/signUp",async (req,res)=>{
     //for this we'll use a middleware which will help us to read  the json data
     //that is express.json()
     //And we know we use (app.use("/") as it is applied to all the route .
-    const user = new User(req.body)
+
     try{
+        //validate the data 
+        ValidateSignUpData(req);
+        const {password,email,firstName,lastName} = req.body;
+        //encrypt the password
+        const hashPassword = await bcrypt.hash(password,10);
+        console.log(hashPassword);
+        //store to database
+
+        const user = new User({
+            firstName,
+            lastName,
+            email,
+            password:hashPassword
+        })
+    
         await user.save();
         res.status(200).send("User added Successfully dynamically ")
     }catch(err){
-        res.status(500).send("Error adding user")
+        res.status(500).send("Error Meassege:" + err.message)
     }
-    
+     
     // const user = new User({//just created an instance of user model
     //     firstName:"Ms",
     //     lastName:"Dhoni",
@@ -116,6 +134,24 @@ app.post("/signUp",async (req,res)=>{
         }catch(err){
             res.status(404).send("Something went wrong")
         }
+    })
+    app.post("/logIn",async(req,res)=>{
+        try{
+            const{email,password} = req.body;
+            const user = await User.findOne({email:email});
+            if(!user){
+                res.status(404).send("Invalid Credentials");
+            }
+            const IsValidPassword = await bcrypt.compare(password,user.password)//here user.password is the password which is stored in the database
+            if(IsValidPassword){
+                res.send("LogIn Successful")
+            }else{
+                res.status(404).send("INvalid Credentials")
+            }
+        }catch(err){
+            res.status(400).send("Error:"+ err.message)
+        }
+        
     })
 ConncetDb()
     .then(()=>{
