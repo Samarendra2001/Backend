@@ -4,9 +4,11 @@ const User = require('./models/user');
 const {ValidateSignUpData} = require('./utils/validate')
 const app = express();
 const bcrypt = require('bcrypt');
-const { isValidObjectId } = require('mongoose');
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken")
 app.use(express.json())//so after using this middleware now we are getting the all the data in the console
 //so simply replace it with static data in the code
+app.use(cookieParser());//this is the middleware which will help us read the cookies from the browser
 app.post("/signUp",async (req,res)=>{
     console.log(req.body);//so now for dynamic getting the value if we will use req.body
     //then it will give the output as undefined as the data which is being passed in postman is in Json format
@@ -20,7 +22,7 @@ app.post("/signUp",async (req,res)=>{
         ValidateSignUpData(req);
         const {password,email,firstName,lastName} = req.body;
         //encrypt the password
-        const hashPassword = await bcrypt.hash(password,10);
+        const hashPassword = await bcrypt.hash(password,10);//here this number is salt round . salt round directly propertional to strong password and taking time for comparison
         console.log(hashPassword);
         //store to database
 
@@ -135,6 +137,29 @@ app.post("/signUp",async (req,res)=>{
             res.status(404).send("Something went wrong")
         }
     })
+    app.get("/profile",async(req,res)=>{
+        try{
+            const cookies = req.cookies;
+
+        const {token} = cookies;//as we have to pass the token to jwt.verify , here we have extracted token from cookies as it is attached with cookies
+        if(!token){
+            throw new Error ("Invalid Token");
+        }
+        //vaidate my token 
+        const decodeMessage = await jwt.verify(token,"dr555asty")//here also you need to pass the same secret key which u hv provided while creating token
+        console.log(decodeMessage);//here it will give you the id of the user which is loggged in
+        const {_id} = decodeMessage;//here id is extracted from decodemessage
+        const user = await User.findById(_id);
+        if(!user){
+            throw new Error ("User does not Exist")
+        }
+        console.log(cookies);
+        res.send(user);
+        }catch(err){
+            res.stauts(404).send("Error:" + err.message)
+        }
+        
+    })
     app.post("/logIn",async(req,res)=>{
         try{
             const{email,password} = req.body;
@@ -144,7 +169,13 @@ app.post("/signUp",async (req,res)=>{
             }
             const IsValidPassword = await bcrypt.compare(password,user.password)//here user.password is the password which is stored in the database
             if(IsValidPassword){
-                res.send("LogIn Successful")
+                //create  a token
+                const token = await jwt.sign({_id:user._id},"dr555asty");//here the first parameter is the user id which is hidden inside the token and the second parameter is the secretKey which will be required while verifying the token . This is only known to the user.If the secret key is not matched then the token will not be matched
+                console.log(token);
+                //Add the token to cookie and send the response back to the user
+                res.cookie("token",token);
+
+                res.send("LogIn Successful");
             }else{
                 res.status(404).send("INvalid Credentials")
             }
