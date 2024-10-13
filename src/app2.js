@@ -170,11 +170,13 @@ app.post("/signUp",async (req,res)=>{
             if(!user){
                 res.status(404).send("Invalid Credentials");
             }
-            const IsValidPassword = await bcrypt.compare(password,user.password)//here user.password is the password which is stored in the database
+            // = await bcrypt.compare(password,user.password)//here user.password is the password which is stored in the database
+            const IsValidPassword = await user.validatePassword(password);
             if(IsValidPassword){
                 //create  a token
-                const token = await jwt.sign({_id:user._id},"dr555asty",{expiresIn:"7d"});//here the first parameter is the user id which is hidden inside the token and the second parameter is the secretKey which will be required while verifying the token . This is only known to the user.If the secret key is not matched then the token will not be matched
-                console.log(token);
+                const token = await user.getJWT();
+                //const token = await jwt.sign({_id:user._id},"dr555asty",{expiresIn:"7d"});//here the first parameter is the user id which is hidden inside the token and the second parameter is the secretKey which will be required while verifying the token . This is only known to the user.If the secret key is not matched then the token will not be matched
+                //console.log(token);
                 //Add the token to cookie and send the response back to the user
                 res.cookie("token",token,{
                     expires:new Date(Date.now() + 8 * 3600000)
