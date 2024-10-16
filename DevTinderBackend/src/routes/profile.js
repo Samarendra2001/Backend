@@ -21,9 +21,12 @@ profileRouter.patch("/profile/edit", UserAuth, async (req,res)=>{
         }
     
         const loggedInUser = req.user;
-        console.log(loggedInUser);
-    
-        Object.keys(req.body).forEach((key) => (loggedInUser[key] = req.body[key]));
+        //console.log(loggedInUser);
+        //we can update in this way also as we have got loggedIN user so we can update them accordingly
+        //loggedInUser.firstName = req.body.firstName;
+        //loggedInUser.lastName = req.body.lastName; // and so on 
+        //but this method is cleaner method 
+        Object.keys(req.body).forEach((key) => (loggedInUser[key] = req.body[key]));//what it will do it will iterate over each element in req.body and it will update the loggedinUser value whatever value getting from req.body
     
         await loggedInUser.save();
     

@@ -8,10 +8,10 @@ app.use(cookieParser());
 
 const authRouter = require("./routes/authentication");
 const profileRouter = require("./routes/profile");
-
+const requestRouter = require("./routes/requests")
 app.use("/", authRouter);
 app.use("/", profileRouter);
-
+app.use("/",requestRouter)
 ConncetDb()
     .then(()=>{
         console.log("database connected successfully");
