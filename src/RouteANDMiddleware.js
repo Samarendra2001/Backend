@@ -4,11 +4,14 @@ app.use("/user",(req,res,next)=>{//if we don't send any response then it will hu
 //res.send("Hi This is 1st Route handler")
 console.log("Hi")//it will print on console but still it will be hung as there is no response was sent.
 next();//for control reach to next route handler we need to pass another function that is next();
+//one route has multiple route handler like in following
 },(req,res)=>{
     console.log("This is second route handler")
     res.send("This is 2nd route handler.")
 })
-
+//if the route has multiple route handler it will not go to second route unless next() is there . And also it depends on where next() is placed 
+//like before response or after if before then it will directly go to next route handler if after then it will print 1st and then error as
+//already one response is made from same point . if no response from 1st route and next is after that then it will hung.
 app.use("/route1",(req,res,next)=>{
     next();
 },(req,res)=>{
